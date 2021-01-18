@@ -10,7 +10,7 @@ The code that can reproduce results in the paper can be downloaded through
 
 1. R version >= 3.6.
 2. R packages: Rcpp (>= 1.0.3), RcppArmadillo (>= 0.9.850.1.0), stats, MASS.
-3. Install the package SCSC.
+3. Install the package BLGGM.
 ```
 devtools::install_github("WgitU/BLGGM")
 ```
