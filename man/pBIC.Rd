@@ -33,13 +33,10 @@ ncol(scRNA_data_matr)
 n_celltype <- dim(precision_matr)[3]
 
 #run BLGGM
-set.seed(20200201)
+set.seed(20201116)
 Result <- BLGGM(scRNA_data_matr, n_celltype, num_iterations = 10000, num_threads = 10)
 
 #pBIC
 pBIC(Result, scRNA_data_matr)
-
-}
-\references{
 
 }
