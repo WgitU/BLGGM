@@ -1,7 +1,6 @@
 ## BLGGM: Estimating Heterogeneous Gene Regulatory Networks from Zero-Inflated Single-Cell Expression Data
 Single-cell sequencing technologies can elucidate the gene-gene relationship at an unprecedented resolution. However, the expression data from single cells are often zero-inflated and heterogeneous, making commonly used Gaussian graphical models infeasible to correctly estimate gene regulatory networks. We proposed a Bayesian latent mixture Gaussian graphical model to explicitly account for the data heterogeneity and zero-inflation. The R package BLGGM (Bayesian Latent Gaussian Graph Mixture), designed for operating systems Windows and Linux, implements the proposed method to cluster cells and obtain cellular gene regulatory networks simultaneously. Package BLGGM employs a hybrid Markov chain Monte Carlo algorithm to perform posterior inference in the Bayesian framework.
 
-The __CODE__ that can reproduce the results in the paper "Estimating Heterogeneous Gene Regulatory Networks from Zero-Inflated Single-Cell Expression Data" can be downloaded through the link https://drive.google.com/file/d/1aNaVz9Q4AEuoCNgH4ttgQ5S1sTfwB7eZ/view?usp=sharing.
 
 ## Prerequisites and Installation
 
