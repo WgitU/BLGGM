@@ -4,7 +4,7 @@
 #' 
 #' @param scRNA_data_matr The scRNA-seq data matrix, where rows represent genes and columns represent cells. Matrix values need to be normalized single expression data.
 #' @param n_celltype An integer, denoting the number of cell types.
-#' @param warm_cluster_label_init The initialization of cluster labels is random or based on k-means. The default is FALSE, corresponding to the random initialization.
+#' @param warm_cluster_label_init The initialization of cluster labels is random or based on k-means. The default is TRUE, corresponding to a k-means initialization.
 #' @param num_iterations The number of Gibbs sampler iterations. The default is 10000.
 #' @param num_burnin The number of iterations in burn-in, after which the posterior samples are used to estimate the unknown parameters. The default is the first half of total iterations.
 #' @param collect_post_sample Logical, collect the posterior samples or not. If users are only interested in the estimates, set it as FALSE to save the memory. If users would like to use posterior samples to construct credible intervals or for other uses, set it as TRUE. The default is FALSE.
@@ -67,7 +67,7 @@
 #' 
 #' @references Qiuyu Wu, and Xiangyu Luo. "Estimating Heterogeneous Gene Regulatory Networks from Zero-Inflated Single-Cell Expression Data."
 #' @export
-BLGGM <- function(scRNA_data_matr, n_celltype, warm_cluster_label_init = FALSE, 
+BLGGM <- function(scRNA_data_matr, n_celltype, warm_cluster_label_init = TRUE, 
                   num_iterations = 10000, num_burnin = floor(num_iterations/2), collect_post_sample = FALSE, 
                   hyperparameters = c(0.2, 20, 0, 1, 3, -2, 0.2, 0.2, 0.01, 10, 0.02, 1, 1, 2/(dim(scRNA_data_matr)[1] - 1)),
                   hyperparameters_conc = rep(1, n_celltype), inclusion_thr = 0.5,
@@ -79,14 +79,14 @@ BLGGM <- function(scRNA_data_matr, n_celltype, warm_cluster_label_init = FALSE,
   ind_zero <- (scRNA_data_matr == 0)
   
   if ((sum(rowMeans(ind_zero) == 1)) > 0) {
-    print("Warning: remove the genes having zero expression across spots or cells")
+    print("Warning: remove the genes having zero expression across cells")
     ind_gene <- (rowMeans(ind_zero) < 1)
     scRNA_data_matr <- scRNA_data_matr[ind_gene, ]
     ind_zero <- ind_zero[ind_gene, ]
   }
   
   G <- dim(scRNA_data_matr)[1]
-  n <- dim(scRNA_data_matr)[2]
+  N <- dim(scRNA_data_matr)[2]
   
   #initialize theta_t
   theta_t <- scRNA_data_matr
@@ -94,31 +94,37 @@ BLGGM <- function(scRNA_data_matr, n_celltype, warm_cluster_label_init = FALSE,
     theta_t[g, ind_zero[g, ]] <- quantile(scRNA_data_matr[g,!ind_zero[g,]], probs = 0.05)
   }
   theta_t <- log(theta_t)
+  theta_t[is.na(theta_t)] <- 0
   
   #initialize types
   if (warm_cluster_label_init == FALSE) {
-    group_t <- sample(1:n_celltype, n, replace = TRUE)
+    group_t <- sample(1:n_celltype, N, replace = TRUE)
   } else {
-    group_t <- kmeans(t(log2(scRNA_data_matr+1)), n_celltype)$cluster
+    group_t <- kmeans(t(log2(scRNA_data_matr+1)), centers = n_celltype, nstart = 10)$cluster
   }
+  
+  #initialize mu_t
+  mu_t <- matrix(0, G, n_celltype)
   
   #initialize precision matrices, edge inclusion matrices and covariance matrices
   invcov_t <- array(diag(1,G), dim = c(G, G, n_celltype))
   edge_t <- array(0, dim = c(G, G, n_celltype))
   cov_t <- array(diag(1,G), dim = c(G, G, n_celltype))
   for (k in 1:n_celltype) {
-    diag(invcov_t[,,k]) <- k
-    diag(cov_t[,,k]) <- 1/k
+    theta_k <- as.matrix(theta_t[,group_t==k])
+    mu_t[,k] <- rowMeans(theta_k)
+    if (sum(group_t==k) > 1) {
+      diag(cov_t[,,k]) <- diag((theta_k - mu_t[,k]) %*% t(theta_k - mu_t[,k]) / 
+                                 (sum(group_t==k) - 1))
+    } else {
+      diag(cov_t[,,k]) <- diag((theta_k - mu_t[,k]) %*% t(theta_k - mu_t[,k]))
+    }
+    diag(cov_t[,,k])[diag(cov_t[,,k]) == 0] <- 1
+    diag(invcov_t[,,k]) <- 1.0 / diag(cov_t[,,k])
   }
   
   theta_t <- t(theta_t)
   ind_zero <- t(ind_zero)
-  
-  #initialize mu_t
-  mu_t <- NULL
-  for (k in 1:n_celltype) {
-    mu_t <- cbind(mu_t, rep(k,G))
-  }
   
   #set gam
   gam = hyperparameters_conc
@@ -144,7 +150,7 @@ BLGGM <- function(scRNA_data_matr, n_celltype, warm_cluster_label_init = FALSE,
   
   Result <- MCMC_full(num_iterations, num_saved, theta_t, ind_zero, mu_t, 
                       invcov_t, cov_t, edge_t, group_t, lambda0_t, lambda1_t, 
-                      pi_t, gam, G, n, n_celltype, ssp_v0, ssp_v1, ssp_l, ssp_pi,
+                      pi_t, gam, G, N, n_celltype, ssp_v0, ssp_v1, ssp_l, ssp_pi,
                       epsilon_theta = hyperparameters[1], num_step_theta = hyperparameters[2], 
                       eta_mu = hyperparameters[3], tau_sq_mu = hyperparameters[4],
                       lam0_0= hyperparameters[5], lam1_0 = hyperparameters[6], sigma2_lam0= hyperparameters[7], 

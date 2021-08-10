@@ -44,9 +44,12 @@ pBIC <- function(BLGGM_result, scRNA_data_matr) {
       for (k in 1:K) {
         mu_mis <- BLGGM_result$cell_type_mean_expr[mis_i,k]
         mu_obs <- BLGGM_result$cell_type_mean_expr[!mis_i,k]
-        invcov_mis <- BLGGM_result$cell_type_precision_matr[mis_i,mis_i,k]
-        invcov_obs <- BLGGM_result$cell_type_precision_matr[!mis_i,!mis_i,k]
-        invcov_12 <- BLGGM_result$cell_type_precision_matr[!mis_i,mis_i,k]
+        invcov_mis <- matrix(BLGGM_result$cell_type_precision_matr[mis_i,mis_i,k],
+                             sum(mis_i), sum(mis_i))
+        invcov_obs <- matrix(BLGGM_result$cell_type_precision_matr[!mis_i,!mis_i,k], 
+                             sum(!mis_i), sum(!mis_i))
+        invcov_12 <- matrix(BLGGM_result$cell_type_precision_matr[!mis_i,mis_i,k],
+                            sum(!mis_i), sum(mis_i))
         theta_mu_obs <- theta_est[i, !mis_i] - mu_obs
         
         inv_invcov_mis <- solve(invcov_mis)
@@ -78,7 +81,11 @@ pBIC <- function(BLGGM_result, scRNA_data_matr) {
         tmp_i <- tmp_i + BLGGM_result$prop[k] * exp(log_obs)
       }
     }
-    tmp <- tmp + log(tmp_i)
+    if (tmp_i == 0) {
+      tmp <- tmp - 10000
+    } else {
+      tmp <- tmp + log(tmp_i)
+    }
   }
   
   Zero_num <- 0

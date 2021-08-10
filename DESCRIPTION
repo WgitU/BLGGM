@@ -2,8 +2,8 @@ Package: BLGGM
 Type: Package
 Title: Estimating Heterogeneous Gene Regulatory Networks from
         Zero-Inflated Single-Cell Expression Data
-Version: 0.99.5
-Date: 2021-1-18
+Version: 0.99.7
+Date: 2021-8-10
 Author: Qiuyu Wu,
  Xiangyu Luo
 Maintainer: Qiuyu Wu <w.qy@ruc.edu.cn>
@@ -16,4 +16,4 @@ RoxygenNote: 7.1.1
 Encoding: UTF-8
 LazyData: true
 NeedsCompilation: yes
-Packaged: 2021-01-18 09:54:50 UTC; WU
+Packaged: 2021-08-10 00:50:00 UTC; WU

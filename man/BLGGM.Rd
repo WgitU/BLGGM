@@ -7,7 +7,7 @@
 BLGGM(
   scRNA_data_matr,
   n_celltype,
-  warm_cluster_label_init = FALSE,
+  warm_cluster_label_init = TRUE,
   num_iterations = 10000,
   num_burnin = floor(num_iterations/2),
   collect_post_sample = FALSE,
@@ -25,7 +25,7 @@ BLGGM(
 
 \item{n_celltype}{An integer, denoting the number of cell types.}
 
-\item{warm_cluster_label_init}{The initialization of cluster labels is random or based on k-means. The default is FALSE, corresponding to the random initialization.}
+\item{warm_cluster_label_init}{The initialization of cluster labels is random or based on k-means. The default is TRUE, corresponding to a k-means initialization.}
 
 \item{num_iterations}{The number of Gibbs sampler iterations. The default is 10000.}
 

@@ -362,6 +362,7 @@ void update_group(arma::vec &group_t, const arma::cube &invcov_t, const arma::ma
         (theta_i - mu_t.col(pi_n0(k_pi))).t() * invcov_t.slice(pi_n0(k_pi)) * (theta_i - mu_t.col(pi_n0(k_pi)))/2.0;
       tmp(pi_n0(k_pi)) = tmp_k_pi(0);
     }
+    tmp.replace(datum::inf, pow(10, 308));
     arma::vec tmp_new = tmp - max(tmp);
     tmp_new = exp(tmp_new);
     arma::vec prob = tmp_new % pi_t;
